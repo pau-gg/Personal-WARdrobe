@@ -1,0 +1,1017 @@
+
+import React, { useMemo, useState } from "react";
+
+const COLORS = {
+  Navy: "#17233f",
+  "Navy Pinstripe": "#17233f",
+  "Very Dark Blue": "#081123",
+  Black: "#111111",
+  "Dark Grey": "#4b4b55",
+  Grey: "#8a8a95",
+  "Light Grey": "#c8c7ce",
+  White: "#ffffff",
+  Eggshell: "#eee6d8",
+  Rose: "#d9a6b3",
+  Red: "#9b1f2d",
+  Berry: "#6f244f",
+  Olive: "#55634b",
+  Green: "#315c46",
+  "Dark Green": "#244536",
+  "Medium Blue": "#386b9f",
+  "Light Blue": "#a8c8e6",
+  Purple: "#5b3a79",
+  "Dark Purple": "#4a2d5c",
+  Pink: "#e7a9c4",
+  Magenta: "#cc6699",
+  Beige: "#d8c4a1",
+  Brown: "#6b4a2e",
+  "Wine Red": "#6f1d35",
+  Skin: "#e6bca3",
+  SkinShade: "#d5a48c",
+  Hair: "#261612"
+};
+
+function item(name, color, category, formal, seasons, extra = {}) {
+  return {
+    id: `${category}-${name}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    name,
+    color,
+    category,
+    formal,
+    seasons,
+    ...extra
+  };
+}
+
+const BASE_WARDROBE = {
+  blazers: [
+    item("Blazer Off", "Off", "blazer", 0, ["all"], { off: true }),
+    item("Navy Pinstripe", "Navy Pinstripe", "blazer", 10, ["winter", "spring", "autumn"], { pinstripe: true, business: 10, boss: 10 }),
+    item("Black", "Black", "blazer", 10, ["all"], { business: 10, boss: 10 }),
+    item("Navy", "Navy", "blazer", 10, ["all"], { business: 10, boss: 9 }),
+    item("Dark Grey", "Dark Grey", "blazer", 9, ["all"], { business: 9, boss: 8 }),
+    item("Berry", "Berry", "blazer", 8, ["winter", "autumn"], { accent: true, boss: 8 }),
+    item("Olive", "Olive", "blazer", 8, ["autumn", "spring"], { accent: true, grounded: true }),
+    item("Medium Blue", "Medium Blue", "blazer", 8, ["spring", "summer"], { accent: true }),
+    item("Light Grey", "Light Grey", "blazer", 8, ["spring", "summer"], { quiet: true })
+  ],
+  pants: [
+    item("Navy Pinstripe", "Navy Pinstripe", "pants", 10, ["winter", "spring", "autumn"], { pinstripe: true, business: 10, boss: 10 }),
+    item("Black", "Black", "pants", 10, ["all"], { business: 10, boss: 9 }),
+    item("Black Pinstripe", "Black", "pants", 10, ["winter", "autumn"], { pinstripe: true, business: 10, boss: 10 }),
+    item("Dark Grey", "Dark Grey", "pants", 9, ["all"], { business: 9 }),
+    item("Navy", "Navy", "pants", 10, ["all"], { business: 10 }),
+    item("Berry", "Berry", "pants", 8, ["winter", "autumn"], { accent: true }),
+    item("Olive", "Olive", "pants", 8, ["autumn", "spring"], { grounded: true }),
+    item("Medium Blue", "Medium Blue", "pants", 8, ["spring", "summer"], { accent: true }),
+    item("Beige", "Beige", "pants", 7, ["spring", "summer", "autumn"], { quiet: true, warm: true })
+  ],
+  tops: [
+    item("White Shirt", "White", "shirt", 10, ["all"], { crisp: true, business: 10 }),
+    item("Eggshell Shirt", "Eggshell", "shirt", 9, ["spring", "summer", "autumn"], { quiet: true, warm: true }),
+    item("Light Blue Shirt", "Light Blue", "shirt", 9, ["spring", "summer"], { soft: true }),
+    item("Grey Shirt", "Grey", "shirt", 8, ["all"], { neutral: true }),
+    item("Rose Shirt", "Rose", "shirt", 7, ["spring", "summer"], { accent: true, soft: true }),
+    item("Navy Shirt", "Navy", "shirt", 9, ["all"], { deep: true }),
+    item("Very Dark Blue Shirt", "Very Dark Blue", "shirt", 9, ["winter", "autumn"], { deep: true }),
+    item("Black Shirt", "Black", "shirt", 9, ["winter", "autumn"], { deep: true, boss: 8 }),
+    item("Red Shirt", "Red", "shirt", 7, ["winter", "autumn"], { accent: true, bold: true }),
+    item("White Polo", "White", "polo", 6, ["spring", "summer"], { casual: true }),
+    item("Black Polo", "Black", "polo", 7, ["summer", "spring"], { casual: true, deep: true }),
+    item("Navy Polo", "Navy", "polo", 7, ["summer", "spring"], { casual: true, deep: true }),
+    item("Magenta Polo", "Magenta", "polo", 5, ["spring", "summer"], { casual: true, accent: true  }),  
+    item("Light Blue Polo", "Light Blue", "polo", 6, ["summer", "spring"], { casual: true, soft: true }),
+    item("Grey Polo", "Grey", "polo", 6, ["summer", "spring"], { casual: true, neutral: true }),
+    item("Dark Green Polo", "Dark Green", "polo", 6, ["autumn", "summer"], { casual: true, grounded: true }),
+    item("Dark Purple Polo", "Dark Purple", "polo", 6, ["winter", "summer"], { casual: true, accent: true }),
+    item("Pink Polo", "Pink", "polo", 5, ["spring", "summer"], { casual: true, accent: true }),
+    item("Black Turtleneck", "Black", "turtleneck", 10, ["winter", "autumn"], { deep: true, boss: 9 }),
+    item("Grey Turtleneck", "Grey", "turtleneck", 9, ["winter", "autumn"], { neutral: true, quiet: true }),
+    item("Purple Turtleneck", "Purple", "turtleneck", 8, ["winter", "autumn"], { accent: true, luxury: true }),
+    item("Red Business Sweater", "Red", "sweater", 7, ["winter", "autumn"], { accent: true, bold: true }),
+    item("Green Business Sweater", "Green", "sweater", 8, ["winter", "autumn"], { grounded: true, quiet: true })
+    
+  ],
+  coats: [
+    item("Mantel Off", "Off", "coat", 0, ["all"], { off: true }),
+    item("Navy Medium", "Navy", "coat", 9, ["winter", "autumn", "spring"], { business: 9, quiet: true }),
+    item("Black Long", "Black", "coat", 10, ["winter", "autumn"], { boss: 10, business: 10 }),
+    item("Black Short", "Black", "coat", 8, ["winter", "autumn", "spring"], { business: 8 })
+  ],
+  shoes: [
+    item("Black Leather Loafer", "Black", "shoes", 10, ["all"], { type: "dress", loafer: true, business: 10 }),
+    item("Black Glossy Loafer", "Black", "shoes", 10, ["all"], { type: "dress", loafer: true, boss: 10 }),
+    item("Black Oxford", "Black", "shoes", 10, ["all"], { type: "dress", oxford: true, business: 10, boss: 10 }),
+    item("White Sneaker", "White", "shoes", 5, ["spring", "summer"], { type: "sneaker", casual: true }),
+    item("Beige Sneaker", "Beige", "shoes", 5, ["spring", "summer", "autumn"], { type: "sneaker", casual: true, warm: true }),
+    item("Light Blue Sneaker", "Light Blue", "shoes", 4, ["spring", "summer"], { type: "sneaker", casual: true }),
+    item("Navy Sneaker", "Navy", "shoes", 6, ["spring", "summer"], { type: "sneaker", casual: true }),
+    item("Wine Red Sneaker", "Wine Red", "shoes", 5, ["autumn", "spring"], { type: "sneaker", casual: true, accent: true }),
+    item("Black Sneaker", "Black", "shoes", 6, ["all"], { type: "sneaker", casual: true })
+  ],
+  belts: [
+    item("Belt Off", "Off", "belt", 0, ["all"], { off: true }),
+    item("Black", "Black", "belt", 10, ["all"], { business: 9 }),
+    item("Brown", "Brown", "belt", 6, ["autumn", "spring"], { warm: true }),
+    item("Beige", "Beige", "belt", 7, ["spring", "summer", "autumn"], { warm: true, quiet: true }),
+    item("White", "White", "belt", 7, ["spring", "summer"], { clean: true })
+  ]
+};
+
+const STYLE_MODES = ["Random", "Elegant", "Office Daily", "Boss Look"];
+const SEASONS = ["Off", "Winter", "Spring", "Summer", "Autumn"];
+const PALETTES = ["Random", "Deep Winter", "Quiet Luxury", "Old Money", "Clean Contrast", "Soft Lavender"];
+
+const initialLook = {
+  blazer: BASE_WARDROBE.blazers[3],
+  pants: BASE_WARDROBE.pants[4],
+  top: BASE_WARDROBE.tops[0],
+  coat: BASE_WARDROBE.coats[0],
+  shoes: BASE_WARDROBE.shoes[0],
+  belt: BASE_WARDROBE.belts[1]
+};
+
+export default function App() {
+  const [inventory, setInventory] = useState(BASE_WARDROBE);
+  const [look, setLook] = useState(initialLook);
+  const [locks, setLocks] = useState({ blazer: false, pants: false, top: false, coat: false, shoes: false, belt: false });
+  const [styleMode, setStyleMode] = useState("Boss Look");
+  const [season, setSeason] = useState("Off");
+  const [palette, setPalette] = useState("Deep Winter");
+  const [darkMode, setDarkMode] = useState(false);
+  const [note, setNote] = useState("");
+  const [favoriteName, setFavoriteName] = useState("");
+  const [favorites, setFavorites] = useState([]);
+  const [sortFavs, setSortFavs] = useState("new");
+  const [newItem, setNewItem] = useState({ group: "tops", name: "", color: "Black", formal: 7, season: "all", pinstripe: false, type: "" });
+
+  const analysis = useMemo(() => analyzeLook(look, styleMode, season, palette, note), [look, styleMode, season, palette, note]);
+ 
+
+  function poolName(key) {
+    return key === "blazer" ? "blazers" : key === "pants" ? "pants" : key === "top" ? "tops" : key === "coat" ? "coats" : key === "shoes" ? "shoes" : "belts";
+  }
+
+  function generateOutfit(forceAll = false) {
+    const next = { ...look };
+    ["blazer", "pants", "top", "coat", "shoes", "belt"].forEach((key) => {
+      if (!forceAll && locks[key]) return;
+      const pool = inventory[poolName(key)];
+      next[key] = weightedPick(pool, (candidate) => scoreCandidate({ ...next, [key]: candidate }, key, candidate, styleMode, season, palette, note));
+    });
+    setLook(next);
+  }
+
+  function updateLook(key, id) {
+    const found = inventory[poolName(key)].find((x) => x.id === id);
+    if (found) setLook((prev) => ({ ...prev, [key]: found }));
+  }
+
+  function randomCategory(key) {
+    const candidate = weightedPick(inventory[poolName(key)], (x) => scoreCandidate({ ...look, [key]: x }, key, x, styleMode, season, palette, note));
+    setLook((prev) => ({ ...prev, [key]: candidate }));
+  }
+
+  function addInventoryItem() {
+    if (!newItem.name.trim()) return;
+    const group = newItem.group;
+    const cat = group === "tops" ? "shirt" : group.slice(0, -1);
+    const created = item(newItem.name.trim(), newItem.color.trim() || "Black", cat, Number(newItem.formal), [newItem.season || "all"], {
+      pinstripe: newItem.pinstripe,
+      type: newItem.type || undefined
+    });
+    setInventory((prev) => ({ ...prev, [group]: [...prev[group], created] }));
+    setNewItem({ group: "tops", name: "", color: "Black", formal: 7, season: "all", pinstripe: false, type: "" });
+  }
+
+  function saveFavorite() {
+    const name = favoriteName.trim() || `${analysis.label} ${favorites.length + 1}`;
+    setFavorites((prev) => [{ id: Date.now(), name, look, score: analysis.score, label: analysis.label, created: Date.now() }, ...prev]);
+    setFavoriteName("");
+  }
+
+  const sortedFavorites = [...favorites].sort((a, b) => (sortFavs === "score" ? b.score - a.score : b.created - a.created));
+
+  return (
+    <div
+className={`min-h-screen ${
+darkMode
+? "bg-gradient-to-br from-[#11131b] via-[#161a25] to-[#231d38] text-white"
+: "bg-gradient-to-br from-[#f7f2ea] via-white to-[#eee7fb] text-[#211c2f]"
+}`}
+>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <header className="mb-6 rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl shadow-purple-100/50 backdrop-blur">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.35em] text-purple-500">Paulina's busy closet</p>
+             <h1 className="text-4xl font-black tracking-tight text-[#25193d] sm:text-5xl"> My personal <span className="italic font-serif">WARdrobe</span> </h1>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-base">Digital wardrobe assistant for outfits, business looks and personal style optimization.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <button onClick={() => generateOutfit(false)} className="rounded-2xl bg-[#6d4cc2] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-purple-200 transition hover:-translate-y-0.5 hover:bg-[#5b3ead]">Generate Outfit</button>
+              <button onClick={() => generateOutfit(true)} className="rounded-2xl border border-purple-200 bg-white px-5 py-3 text-sm font-bold text-purple-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-purple-50">Alles Random</button>
+<button
+ onClick={() => setDarkMode(!darkMode)}
+ className="rounded-2xl border px-5 py-3 text-sm font-bold"
+>
+ {darkMode ? "☀️ Light" : "🌙 Dark"}
+</button>              
+      
+            </div>
+          </div>
+        </header>
+
+        <main className="grid gap-5 lg:grid-cols-[1.05fr_1.15fr_0.95fr]">
+          <Panel title="Outfit Preview" subtitle="Ready for today, tomorrow and everything after.">
+            <Preview look={look} 
+            score={analysis.score} />
+            <Mini look={look} />
+          </Panel>
+
+          <Panel title="Wardrobe Controls" subtitle="Lock pieces, choose real items or let the stylist engine decide.">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select label="Style-Modus" value={styleMode} onChange={setStyleMode} options={STYLE_MODES} />
+              <Select label="Saison" value={season} onChange={setSeason} options={SEASONS} />
+              <Select label="Palette" value={palette} onChange={setPalette} options={PALETTES} />
+              <label className="block">
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Notiz für heute</span>
+                
+                <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="z. B. wichtiges Meeting" className="w-full rounded-2xl border border-purple-100 bg-white/80 text-slate-800 px-3 py-3 text-sm font-semibold outline-none ring-purple-200 transition focus:ring-4" />
+              </label>
+              <button
+onClick={() =>
+setLook((prev) => ({
+...prev,
+coat: inventory.coats.find((c) => c.off)
+}))
+}
+className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200"
+>
+Coat Off
+</button>
+
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <Category title="Blazer" value={look.blazer.id} items={inventory.blazers} locked={locks.blazer} onLock={() => setLocks((p) => ({ ...p, blazer: !p.blazer }))} onRandom={() => randomCategory("blazer")} onChange={(id) => updateLook("blazer", id)} />
+              <Category title="Hose" value={look.pants.id} items={inventory.pants} locked={locks.pants} onLock={() => setLocks((p) => ({ ...p, pants: !p.pants }))} onRandom={() => randomCategory("pants")} onChange={(id) => updateLook("pants", id)} />
+              <TopCategory value={look.top.id} items={inventory.tops} locked={locks.top} onLock={() => setLocks((p) => ({ ...p, top: !p.top }))} onRandom={() => randomCategory("top")} onChange={(id) => updateLook("top", id)} />
+              <Category title="Mantel" value={look.coat.id} items={inventory.coats} locked={locks.coat} onLock={() => setLocks((p) => ({ ...p, coat: !p.coat }))} onRandom={() => randomCategory("coat")} onChange={(id) => updateLook("coat", id)} />
+              <Category title="Schuhe" value={look.shoes.id} items={inventory.shoes} locked={locks.shoes} onLock={() => setLocks((p) => ({ ...p, shoes: !p.shoes }))} onRandom={() => randomCategory("shoes")} onChange={(id) => updateLook("shoes", id)} />
+              <Category title="Gürtel" value={look.belt.id} items={inventory.belts} locked={locks.belt} onLock={() => setLocks((p) => ({ ...p, belt: !p.belt }))} onRandom={() => randomCategory("belt")} onChange={(id) => updateLook("belt", id)} />
+            </div>
+          </Panel>
+
+          <Panel title="Analyse / Score" subtitle="Personalized for Paulina: business, boss energy and Deep Winter.">
+            <Analysis analysis={analysis} />
+            <div className="mt-5 rounded-[1.5rem] bg-[#faf7f2] p-4 ring-1 ring-purple-100">
+              <h3 className="font-black text-[#2a2040]">Favoriten</h3>
+              <div className="mt-3 flex gap-2">
+                <input value={favoriteName} onChange={(e) => setFavoriteName(e.target.value)} placeholder="Look-Name" className="min-w-0 flex-1 rounded-2xl border border-purple-100 bg-white px-3 py-2 text-sm outline-none focus:ring-4 focus:ring-purple-100" />
+                <button onClick={saveFavorite} className="rounded-2xl bg-[#2a2040] px-4 py-2 text-sm font-bold text-white">Speichern</button>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-500">Gespeicherte Looks: {favorites.length}</span>
+                <select value={sortFavs} onChange={(e) => setSortFavs(e.target.value)} className="rounded-xl border border-purple-100 bg-white px-2 py-1 text-xs font-semibold">
+                  <option value="new">nach neu</option>
+                  <option value="score">nach Score</option>
+                </select>
+              </div>
+              <div className="mt-3 max-h-56 space-y-2 overflow-auto pr-1">
+                {sortedFavorites.map((fav) => <Favorite key={fav.id} favorite={fav} onLoad={() => setLook(fav.look)} onDelete={() => setFavorites((prev) => prev.filter((x) => x.id !== fav.id))} />)}
+                {!favorites.length && <p className="rounded-2xl bg-white p-3 text-sm text-slate-500">Noch keine Favoriten. Speichere deinen ersten Signature Look.</p>}
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-[1.5rem] bg-white p-4 ring-1 ring-purple-100">
+              <h3 className="font-black text-[#2a2040]">Bestand erweitern</h3>
+              <div className="mt-3 grid gap-2">
+               <select value={newItem.group}
+                onChange={(e) => setNewItem((p) => ({ ...p,
+                group: e.target.value
+            }))
+}                                              
+className="rounded-2xl border border-purple-100 bg-white text-slate-800 px-3 py-2 text-sm"
+>
+                  <option value="blazers">Blazer</option><option value="pants">Hose</option><option value="tops">Top</option><option value="coats">Mantel</option><option value="shoes">Schuhe</option><option value="belts">Gürtel</option>
+                </select>
+                <input value={newItem.name} onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))} placeholder="Name" className="rounded-2xl border border-purple-100 px-3 py-2 text-sm" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input value={newItem.color} onChange={(e) => setNewItem((p) => ({ ...p, color: e.target.value }))} placeholder="Farbe" className="rounded-2xl border border-purple-100 px-3 py-2 text-sm" />
+                  <input type="number" min="1" max="10" value={newItem.formal} onChange={(e) => setNewItem((p) => ({ ...p, formal: e.target.value }))} className="rounded-2xl border border-purple-100 px-3 py-2 text-sm" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                 <select
+value={newItem.season}
+onChange={(e) => setNewItem((p) => ({ ...p, season: e.target.value
+}))}
+className="rounded-2xl border border-purple-100 bg-white text-slate-800 px-3 py-2 text-sm">
+                    <option value="all">all</option><option value="winter">winter</option><option value="spring">spring</option><option value="summer">summer</option><option value="autumn">autumn</option>
+                  </select>
+                  <input value={newItem.type} onChange={(e) => setNewItem((p) => ({ ...p, type: e.target.value }))} placeholder="Typ, z. B. dress/sneaker" className="rounded-2xl border border-purple-100 px-3 py-2 text-sm" />
+                </div>
+                <label className="flex items-center gap-2 rounded-2xl bg-purple-50 px-3 py-2 text-sm font-semibold text-purple-800"><input type="checkbox" checked={newItem.pinstripe} onChange={(e) => setNewItem((p) => ({ ...p, pinstripe: e.target.checked }))} /> Pinstripe</label>
+                <button onClick={addInventoryItem} className="rounded-2xl bg-purple-100 px-4 py-2 text-sm font-black text-purple-800">Kleidungsstück hinzufügen</button>
+              </div>
+            </div>
+          </Panel>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, subtitle, children }) {
+  return (
+    <section className="rounded-[2rem] border border-white/80 bg-white/75 p-4 shadow-xl shadow-purple-100/40 backdrop-blur sm:p-5">
+      <div className="mb-4">
+        <h2 className="text-xl font-black tracking-tight text-[#25193d]">{title}</h2>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Preview({look, score}) {
+  return (
+    <div className="relative mx-auto h-[620px] max-w-[410px] overflow-hidden rounded-[2rem] bg-gradient-to-b from-[#f4efe8] via-[#faf8fd] to-[#e7ddfa]
+ shadow-inner ring-1 ring-white">
+      <div className="absolute inset-x-7 top-7 h-28 rounded-full bg-white/60 blur-2xl" />
+      <div className="absolute left-1/2 top-7 h-[560px] w-[260px] -translate-x-1/2">
+           {score = 100 && (
+ <>
+ <div
+ className="absolute left-1/2 top-[40px] z-3 h-[580px] w-[320px] -translate-x-1/2 rounded-full blur-3xl animate-pulse"
+ style={{
+ background:
+ "radial-gradient(circle, rgba(168,85,247,0.45) 0%, rgba(109,76,194,0.25) 50%, transparent 100%)"
+ }}
+ />
+
+ <div
+ className="absolute left-1/2 top-[120px] z-3 h-[300px] w-[580px] -translate-x-1/2 blur- [80px]"
+ style={{
+ background:
+ "radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 50%)"
+ }}
+ />
+ </>
+)}
+ 
+        <HairBack />
+        <NeckBack />
+        <Arms />
+        <Top item={look.top} blazerActive={!look.blazer.off || !look.coat.off} />
+        <Pants item={look.pants} />
+        <Belt item={look.belt} />
+        <Blazer item={look.blazer} />
+        <Coat item={look.coat} />
+        <Shoes item={look.shoes} />
+        <HeadAndHairFront />
+        <div className="absolute bottom-[22px] left-1/2 z-80 h-10 w-44 -translate-x-1/2 rounded-full bg-black/20 blur-2xl" />
+      <div className="absolute bottom-[18px] left-1/2 z-50 h-12 w-48 -translate-x-1/2 rounded-full bg-slate-500/15 blur-3xl" />
+      </div>
+    </div>
+  );
+}
+
+function HairBack() {
+  return (
+    <>
+      <div className="absolute left-[58px] top-[6px] z-0 h-[215px] w-[138px] rounded-t-[100px] rounded-b-[115px] bg-[#261612] shadow-lg" />
+      <div className="absolute left-[52px] top-[48px] z-0 h-[145px] w-[32px] rounded-full bg-[#261612]" />
+      <div className="absolute right-[58px] top-[48px] z-0 h-[145px] w-[32px] rounded-full bg-[#261612]" />
+    </>
+  );
+}
+
+function NeckBack() {
+  return <div className="absolute left-[112px] top-[112px] z-[20] h-[52px] w-[34px] rounded-b-[14px] bg-[#e6bca3]" />;
+}
+
+function Arms() {
+  return (
+    <>
+      {/* sichtbare Unterarme für Polo */}
+      <div className="absolute left-[50px] top-[180px] z-[3] h-[150px] w-[20px] rounded-full bg-[#e6bca3]" />
+      <div className="absolute right-[50px] top-[180px] z-[3] h-[150px] w-[20px] rounded-full bg-[#e6bca3]" />
+    </>
+  );
+}
+
+function HeadAndHairFront(/*{blushOn}*/) {
+  return (
+    <div className="absolute left-1/2 top-[28px] z-30 -translate-x-1/2">
+      <div className="absolute -left-[20px] top-[32px] h-[124px] w-[28px] rounded-full bg-[#261612]" />
+      <div className="absolute right-[-20px] top-[32px] h-[124px] w-[28px] rounded-full bg-[#261612]" />
+      {/* Lange Haar-Highlights links */}
+      <div
+      className="absolute left-[7px] top-[42px] h-[100px] w-[4px] rounded-full opacity-20"
+      style={{ backgroundColor: "#8B4513" }}
+      />    
+      <div
+      className="absolute left-[0px] top-[55px] h-[70px] w-[3px] rounded-full opacity-20"
+      style={{ backgroundColor: "#A66A3F" }}
+      />
+      <div
+      className="absolute left-[-13px] top-[55px] h-[70px] w-[3px] rounded-full opacity-20"
+      style={{ backgroundColor: "#A66A3F" }}
+      />
+      <div
+       className="absolute left-[-10px] top-[40px] h-[90px] w-[3px] rounded-full opacity-15"
+       style={{ backgroundColor: "#A66A3F" }}
+      />
+      {/* Soft Blush */}
+        <div
+        className="absolute left-[8px] top-[60px] z-50 h-[10px] w-[14px] rounded-full opacity-35"
+        style={{backgroundColor: "#d8899e" }}
+        />
+        <div
+        className="absolute right-[8px] top-[60px] z-50 h-[10px] w-[14px] rounded-full opacity-35"
+        style={{ backgroundColor: "#d8899e" }}
+        />
+
+    
+      {/* Lange Haar-Highlights rechts */}
+      <div
+      className="absolute right-[-12px] top-[42px] h-[100px] w-[5px] rounded-full opacity-20"
+      style={{ backgroundColor: "#8B4513" }}
+      />
+
+      <div
+      className="absolute right-[-6px] top-[55px] h-[70px] w-[4px] rounded-full opacity-20"
+      style={{ backgroundColor: "#A66A3F" }}
+      />
+
+      <div className="relative h-[104px] w-[84px] overflow-visible rounded-[45%] bg-[#e6bca3] shadow-md ring-1 ring-[#d5a48c]">
+       {/* Curtain Bangs links */}
+      <div
+      className="absolute left-[8px] top-[-15px] z-40 h-[65px] w-[25px] rounded-b-[70%] bg-[#261612]"
+      style={{ transform: "rotate(35deg)" }}
+      />
+      {/* Curtain Bangs rechts */}
+      <div className="absolute right-[8px] top-[-15px] z-40 h-[65px] w-[25px] rounded-b-[70%] bg-[#261612]"
+      style={{ transform: "rotate(-35deg)" }}
+      />
+     {/* Highlights */}
+      <div
+      className="absolute left-[16px] top-[2px] z-50 h-[40px] w-[8px] rounded-full opacity-25"
+      style={{ backgroundColor: "#8B4513", transform: "rotate(20deg)" }}
+      />
+
+      <div
+      className="absolute right-[16px] top-[2px] z-50 h-[40px] w-[8px] rounded-full opacity-25"
+      style={{ backgroundColor: "#8B4513", transform: "rotate(-20deg)" }}
+        />
+      <div
+      className="absolute left-[28px] top-[-8px] z-50 h-[28px] w-[8px] rounded-full opacity-20"
+      style={{ backgroundColor: "#8B4513" }}
+      />         
+        <div className="absolute left-[22px] top-[40px] h-[14px] w-[5px] rounded-full bg-[#2f221c]" />
+        <div className="absolute right-[22px] top-[40px] h-[14px] w-[5px] rounded-full bg-[#2f221c]" />
+        <div className="absolute left-[18px] top-[36px] h-[1.5px] w-[12px] rounded-full bg-[#6f4e40]" />
+        <div className="absolute right-[18px] top-[36px] h-[1.5px] w-[12px] rounded-full bg-[#6f4e40]" />
+ 
+        <div className="absolute left-1/2 top-[58px] h-[10px] w-[2px] -translate-x-1/2 rounded-full bg-[#c88f73]" />
+
+<div
+    className="absolute left-1/2 top-[77px] h-[3px] w-[14px] -translate-x-1/2 rounded-full bg-[#a9606b]"
+/>
+
+      </div>
+    </div>
+  );
+}
+
+    
+
+function Top({ item, blazerActive }) {
+  const c = getColor(item.color);
+  const isPolo = item.category === "polo";
+  const isShirt = item.category === "shirt";
+  const isTurtle = item.category === "turtleneck";
+  const isSweater = item.category === "sweater";
+  const longSleeve = !isPolo;
+  return (
+    <div className="absolute left-1/2 top-[148px] z-10 -translate-x-1/2">
+      {true && (
+        <>
+          <div className={`absolute left-[-29px] top-[19px] ${longSleeve ? "h-[148px]" : "h-[74px]"} w-[32px] rounded-b-[24px] rounded-t-[18px] shadow-sm`} style={{ backgroundColor: c }} />
+          <div className={`absolute right-[-29px] top-[19px] ${longSleeve ? "h-[148px]" : "h-[74px]"} w-[32px] rounded-b-[24px] rounded-t-[18px] shadow-sm`} style={{ backgroundColor: c }} />
+        </>
+      )}
+      <div className="relative h-[175px] w-[112px] rounded-t-[28px] rounded-b-[16px] shadow-md ring-1 ring-black/5" style={{ backgroundColor: c }}>
+        {isTurtle && <div className="absolute left-1/2 -top-8 h-12 w-16 -translate-x-1/2 rounded-t-2xl bg-inherit ring-1 ring-black/5" />}
+        {isShirt && <ShirtDetails />}
+        {isPolo && <PoloDetails />}
+        {isSweater && <SweaterDetails />}
+      </div>
+    </div>
+  );
+}
+
+function ShirtDetails() {
+   return (
+     <>
+       <div className="absolute left-[35px] top-0 h-5 w-8 -rotate-20 rounded bg-white/15" />
+       <div className="absolute right-[35px] top-0 h-5 w-8 rotate-20 rounded bg-white/15" />
+        <div className="absolute left-[21px] top-0 h-7 w-3 origin-top-left -rotate-40 rounded bg-white/30" />
+        <div className="absolute right-[21px] top-0 h-7 w-3 origin-top-right rotate-40 rounded bg-white/30" />
+       <div className="absolute left-1/2 top-7 h-[128px] w-[3px] -translate-x-1/2 bg-black/15" />
+
+      <div
+        className="absolute left-1/2 z-15 top-[10px] h-8 w-[110px] -translate-x-1/2 rounded-full blur-xl"
+        style={{
+        background: "rgba(0,0,0,0.5)"
+        }}
+        />
+
+
+       {[48, 72, 96, 120].map((y) => (
+         <span
+           key={y}
+           className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-black/25"
+           style={{ top: y }}
+         />
+       ))}
+    </>
+   );
+ }
+ 
+function PoloDetails() {
+  return (
+    <>
+      <div className="absolute left-[21px] top-1 h-6 w-3 origin-top-left -rotate-45 rounded bg-white/30" />
+      <div className="absolute right-[21px] top-1 h-6 w-3 origin-top-right rotate-45 rounded bg-white/30" />
+      <div className="absolute left-1/2 top-9 h-12 w-[3px] -translate-x-1/2 bg-black/15" />
+    </>
+  );
+}
+
+function SweaterDetails() {
+  return (
+    <>
+      <div className="absolute inset-x-4 top-8 h-[1px] bg-white/20" />
+      <div className="absolute inset-x-6 top-14 h-[1px] bg-black/10" />
+      <div className="absolute inset-x-5 top-20 h-[1px] bg-white/20" />
+    </>
+  );
+}
+
+function Blazer({ item }) {
+  if (item.off) return null;
+
+  const c = getColor(item.color);
+
+  return (
+    <div className="absolute left-1/2 top-[142px] z-14 -translate-x-1/2">
+      {/* Ärmel */}
+      <div
+        className="absolute left-[-24px] top-3 h-[150px] w-[32px] rounded-b-[26px] rounded-t-[20px] shadow-md"
+        style={{ backgroundColor: c }} >
+      {item.name === "Navy Pinstripe" && <Pinstripes narrow />}
+        </div>
+        
+        <div
+          className="absolute right-[-24px] top-3 h-[150px] w-[32px] rounded-b-[26px] rounded-t-[20px] shadow-md"
+style={{ backgroundColor: c }} >
+      {item.name === "Navy Pinstripe" && <Pinstripes narrow />}
+        </div>
+          
+
+          <div className="relative h-[205px] w-[122px]">
+
+      {/* LINKE HÄLFTE */}
+      <div
+        className="absolute left-0 top-0 h-full w-[50px] rounded-tl-[20px] rounded-bl-[20px]"
+        style={{
+          backgroundColor: c,
+          clipPath: "polygon(0 0, 100% 0, 72% 100%, 0 100%)"
+        }}
+      >
+       {item.name === "Navy Pinstripe" &&
+      <Pinstripes />}
+      </div>             
+
+      
+
+      {/* RECHTE HÄLFTE */}
+      <div
+      className="absolute right-0 top-0 h-full w-[50px] rounded-tr-[20px] rounded-br-[20px]"
+      style={{
+        backgroundColor: c,
+        clipPath: "polygon(28% 100%, 0 0, 100% 0, 100% 100%)"
+      }}
+      >
+      {item.name === "Navy Pinstripe" && <Pinstripes />}
+    </div>
+
+
+      {/* Revers */}
+      <div
+      className="absolute left-[30px] top-0 h-[90px] w-[20px] rotate-[6deg]"
+      style={{
+        background: "rgba(255,255,255,0.18)",
+        clipPath: "polygon(0 0,100% 0,100% 100%,0 70%)"
+      }}
+    />
+
+    <div
+      className="absolute right-[30px] top-0 h-[90px] w-[20px] rotate-[-6deg]"
+      style={{
+        background: "rgba(255,255,255,0.12)",
+        clipPath: "polygon(0 0,100% 0,100% 70%,0 100%)"
+      }}
+    />
+      </div>
+    </div>
+  );
+}
+
+
+
+/*
+function Blazer({ item }) {
+  if (item.off) return null;
+  const c = getColor(item.color);
+  return (
+    <div className="absolute left-1/2 top-[142px] z-14 -translate-x-1/2">
+      <div className="absolute left-[-24px] top-3 h-[150px] w-[32px] rounded-b-[26px] rounded-t-[20px] shadow-md" style={{ backgroundColor: c }} />
+      <div className="absolute right-[-24px] top-3 h-[150px] w-[32px] rounded-b-[26px] rounded-t-[20px] shadow-md" style={{ backgroundColor: c }} />
+      <div className="relative h-[205px] w-[122px] rounded-t-[15px] rounded-b-[20px] shadow-lg ring-1 ring-black/10" style={{ backgroundColor: c }}>
+        <div className="absolute left-0 top-0 h-full w-[54px] rounded-tl-[34px] rounded-bl-[20px] border-r border-white/15" />
+        <div className="absolute right-0 top-0 h-full w-[54px] rounded-tr-[34px] rounded-br-[20px] border-l border-black/10" />
+        <div className="absolute left-[34px] top-3 h-24 w-10 -skew-x-20 rounded bg-white/15" />
+        <div className="absolute right-[34px] top-3 h-24 w-10 skew-x-20 rounded bg-white/15" />
+        <div
+          className="absolute left-1/2 top-0 z-10 h-[85px] w-[42px] -translate-x-1/2"
+             style={{
+               background:
+                      "linear-gradient(to bottom, transparent 0%, transparent 100%)",
+                           clipPath: "polygon(50% 100%, 0 0, 100% 0)"
+  }}
+/>
+ 
+        <div className="absolute left-1/2 top-0 h-full w-[20px] -translate-x-1/2 bg-white/8" />
+        {item.pinstripe && <Pinstripes />}
+      </div>
+    </div>
+  );
+}
+
+*/
+
+function Pants({ item }) {
+  const c = getColor(item.color);
+  return (
+    <div className="absolute left-1/2 top-[302px] z-[11] -translate-x-1/2">
+      <div className="relative h-[218px] w-[132px]">
+       <div
+      className="absolute left-1/2 z-15 top-[-2px] h-8 w-[110px] -translate-x-1/2 rounded-full blur-xl"
+style={{
+background: "rgba(0,0,0,0.5)"
+}}
+/>
+
+
+        <div className="absolute left-4 top-0 h-[218px] w-[48px] rounded-b-[22px] shadow-md" style={{ backgroundColor: c }} />
+        <div className="absolute right-4 top-0 h-[218px] w-[48px] rounded-b-[22px] shadow-md" style={{ backgroundColor: c }} />
+        <div className="absolute left-5 top-0 h-7 w-[92px] rounded-t-lg" style={{ backgroundColor: c }} />
+        {item.pinstripe && <Pinstripes narrow />}
+      </div>
+    </div>
+  );
+}
+
+function Coat({ item }) {
+  if (item.off) return null;
+  const c = getColor(item.color);
+  const long = item.name.includes("Long");
+  return (
+    <div className="absolute left-1/2 top-[138px] z-18 -translate-x-1/2 pointer-events-none">
+      <div className="relative w-[152px] rounded-t-[40px] shadow-xl ring-1 ring-black/10" style={{ height: long ? 340 : 292, backgroundColor: c, opacity: 0.82
+       }}>
+        <div className="absolute left-1/2 top-0 h-full w-8 -translate-x-1/2 bg-white/10" />
+        <div className="absolute left-8 top-5 h-24 w-10 -skew-x-12 rounded bg-white/18" />
+        <div className="absolute right-8 top-5 h-24 w-10 skew-x-12 rounded bg-white/12" />
+        <div className="absolute -left-[15px] top-3 h-[175px] w-[24px] rounded-t-[48px]" style={{ backgroundColor: c }} />
+        <div className="absolute -right-[15px] top-3 h-[175px] w-[24px] rounded-t-[48px]" style={{ backgroundColor: c }} />
+      </div>
+    </div>
+  );
+}
+
+function Belt({ item }) {
+  if (item.off) return null;
+  return (
+    <>
+      <div
+        className="absolute left-1/2 top-[306px] z-13 h-3 w-[112px] -translate-x-1/2 rounded-full shadow-sm ring-1 ring-black/10"
+        style={{ backgroundColor:
+      getColor(item.color) }}
+/>
+
+{/* Silberschnalle */}
+<div
+  className="absolute left-1/2 top-[304px] z-13 h-[15px] w-[14px] -translate-x-1/2 rounded-sm border border-slate-400 bg-slate-200 shadow-sm"
+      />
+    </>
+  );
+}
+
+
+function Shoes({ item }) {
+  const c = getColor(item.color);
+  const sneaker = item.type === "sneaker";
+  return (
+    <div className="absolute left-1/2 top-[495px] z-25 -translate-x-1/2">
+      <div className="relative h-12 w-[118px]">
+        <div className={`${sneaker ? "rounded-[18px]" : "rounded-t-2xl rounded-b-lg"} absolute left-1 top-2 h-8 w-14 shadow-md ring-1 ring-black/10`} style={{ backgroundColor: c }}>
+          {sneaker && <span className="absolute bottom-1 left-1 right-1 h-1 rounded-full bg-white/70" />}
+        </div>
+        <div className={`${sneaker ? "rounded-[18px]" : "rounded-t-2xl rounded-b-lg"} absolute right-1 top-2 h-8 w-14 shadow-md ring-1 ring-black/10`} style={{ backgroundColor: c }}>
+          {sneaker && <span className="absolute bottom-1 left-1 right-1 h-1 rounded-full bg-white/70" />}
+        </div>
+        {!sneaker && <><span className="absolute left-[20px] top-5 h-1.5 w-5 rounded-full bg-white/20" /><span className="absolute right-[20px] top-5 h-1.5 w-5 rounded-full bg-white/20" /></>}
+      </div>
+    </div>
+  );
+}
+
+function Pinstripes({ narrow = false }) {
+  return <div className="absolute inset-0 overflow-hidden rounded-[inherit] opacity-40">{Array.from({ length: narrow ? 6 : 9 }).map((_, i) => <span key={i} className="absolute top-0 h-full w-px bg-white/70" style={{ left: `${5 + i * 18}%` }} />)}</div>;
+}
+
+function Category({ title, value, items, locked, onLock, onRandom, onChange }) {
+  return (
+    <div className="rounded-[1.35rem] bg-white/80 p-3 shadow-sm ring-1 ring-purple-100">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="font-black text-sm text-[#2a2040]">{title}</h3>
+        <div className="flex gap-1">
+          <button onClick={onRandom} className="rounded-xl bg-purple-50 px-2 py-1 text-xs font-bold text-purple-700">Random</button>
+          <button onClick={onLock} className={`rounded-xl px-2 py-1 text-xs font-bold ${locked ? "bg-[#2a2040] text-white" : "bg-slate-100 text-slate-600"}`}>{locked ? "Locked" : "Lock"}</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">{items.map((it) => <Choice key={it.id} item={it} active={value === it.id} onClick={() => onChange(it.id)} />)}</div>
+    </div>
+  );
+}
+
+function TopCategory(props) {
+  const grouped = props.items.reduce((acc, it) => {
+    const label = it.category === "shirt" ? "Hemden" : it.category === "polo" ? "Polos" : it.category === "turtleneck" ? "Rollkragen" : "Business-Pullover";
+    acc[label] = [...(acc[label] || []), it];
+    return acc;
+  }, {});
+  return (
+    <div className="rounded-[1.35rem] bg-white/80 p-3 shadow-sm ring-1 ring-purple-100">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="font-black text-sm text-[#2a2040]">Top</h3>
+        <div className="flex gap-1"><button onClick={props.onRandom} className="rounded-xl bg-purple-50 px-2 py-1 text-xs font-bold text-purple-700">Random</button><button onClick={props.onLock} className={`rounded-xl px-2 py-1 text-xs font-bold ${props.locked ? "bg-[#2a2040] text-white" : "bg-slate-100 text-slate-600"}`}>{props.locked ? "Locked" : "Lock"}</button></div>
+      </div>
+      <div className="space-y-3">
+        {Object.entries(grouped).map(([group, items]) => <div key={group}><p className="mb-1 text-[10px] font-black uppercase tracking-wider text-slate-400">{group}</p><div className="grid grid-cols-2 gap-2">{items.map((it) => <Choice key={it.id} item={it} active={props.value === it.id} onClick={() => props.onChange(it.id)} />)}</div></div>)}
+      </div>
+    </div>
+  );
+}
+
+function Choice({ item, active, onClick }) {
+  return (
+   <button
+onClick={onClick}
+className={`flex items-center gap-2 rounded-2xl px-2 py-2 text-left text-xs font-bold transition ${
+active
+? "bg-[#6d4cc2] text-white shadow-lg shadow-purple-100"
+: "bg-[#faf7f2] text-slate-700 hover:bg-purple-50"
+}`}>
+      <span className="h-4 w-4 shrink-0 rounded-full ring-1 ring-black/10" style={{ backgroundColor: item.off ? "transparent" : getColor(item.color) }} />
+      <span className="min-w-0 truncate">{item.name}</span>
+    </button>
+  );
+}
+
+function Select({ label, value, onChange, options }) {
+  return <label className="block"><span className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">{label}</span><select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-2xl border border-purple-100 bg-white/80 text-slate-800 px-3 py-3 text-sm font-semibold outline-none ring-purple-200 transition focus:ring-4">{options.map((o) => <option key={o} className="text-slate-800"
+>
+ {o}
+</option>
+)}</select></label>;        
+}
+
+function Mini({ look }) {
+  return <div className="mt-4 grid gap-2 rounded-[1.5rem] bg-white/80 p-4 text-sm ring-1 ring-purple-100">{Object.entries(look).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-3"><span className="font-bold capitalize text-slate-500">{k}</span><span className="truncate font-black text-[#2a2040]">{v.name}</span></div>)}</div>;
+}
+
+function Analysis({ analysis }) {
+  return (
+    <div>
+      <div className="rounded-[1.75rem] bg-gradient-to-br from-[#2a2040] to-[#6d4cc2] p-5 text-white shadow-xl shadow-purple-200">
+        <div className="flex items-end justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.25em] text-purple-100">Outfit Score
+                </p><h3 className="mt-1 text-5xl font-black">{analysis.score}</h3></div><span className="rounded-full bg-white/15 px-4 py-2 text-sm font-black">{analysis.label}</span></div>
+        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-white" style={{ width: `${analysis.score}%` }} /></div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2"><Stat label="Business" value={analysis.stats.business} /><Stat label="Boss Energy" value={analysis.stats.boss} /><Stat label="Deep Winter" value={analysis.stats.deepWinter} /><Stat label="Quiet Luxury" value={analysis.stats.quietLuxury} /></div>
+      <div className="mt-4 space-y-3 text-sm leading-6"><Info title="Farbwirkung" text={analysis.colorEffect} /><Info title="Wirkung auf andere" text={analysis.perception} /><Info title="Make-up Empfehlung" text={analysis.makeup} /><Info title="Optimierungsvorschlag" text={analysis.optimization} /><Info title="Wie komme ich näher an 100?" text={analysis.toHundred} /></div>
+    </div>
+  );
+}
+
+function Stat({ label, value }) {
+  return <div className="rounded-2xl bg-[#faf7f2] p-3 ring-1 ring-purple-100"><div className="flex items-center justify-between gap-2"><span className="text-xs font-black text-slate-500">{label}</span> <span className="text-sm font-black text-[#2a2040]">{value}/10</span></div> <div className="mt-2 h-2 rounded-full bg-white"> <div className="h-full rounded-full bg-[#6d4cc2]" style={{ width: `${value * 10}%` }} /></div></div>;
+}
+
+function Info({ title, text }) {
+  return <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-purple-100"> <h4  className="mb-1 text-xs font-black uppercase tracking-wider text-purple-600">{title}</h4> <p className="text-slate-600">{text}</p></div>;
+}
+
+function Favorite({ favorite, onLoad, onDelete }) {
+  return <div className="rounded-2xl bg-white p-3 ring-1 ring-purple-100"> <div className="flex items-start justify-between gap-2"> <div className="min-w-0"> <p className="truncate font-black text-[#2a2040]"> {favorite.name}</p> <p className="text-xs font-semibold text-slate-500">{favorite.score} · {favorite.label}</p></div><div className="flex gap-1"><button onClick={onLoad} className="rounded-xl bg-purple-50 px-2 py-1 text-xs font-bold text-purple-700">Laden</button> <button onClick={onDelete} className="rounded-xl bg-rose-50 px-2 py-1 text-xs font-bold text-rose-600">Löschen</button></div></div></div>;
+}
+
+function getColor(name) {
+  return COLORS[name] || COLORS[name?.replace(" Sneaker", "")] || COLORS[name?.replace(" Shirt", "")] || "#888";
+}
+
+function weightedPick(pool, scoreFn) {
+  const scored = pool.map((x) => ({ item: x, weight: Math.max(1, scoreFn(x)) }));
+  const total = scored.reduce((sum, x) => sum + x.weight, 0);
+  let r = Math.random() * total;
+  for (const s of scored) {
+    r -= s.weight;
+    if (r <= 0) return s.item;
+  }
+  return scored[0].item;
+}
+
+function scoreCandidate(outfit, key, candidate, mode, season, palette, note) {
+  const a = analyzeLook(outfit, mode, season, palette, note);
+  let value = a.score;
+  if (candidate.off && (key === "coat" || key === "blazer")) value += season === "Summer" ? 12 : 0;
+  if (mode === "Boss Look" && candidate.casual) value -= 10;
+  return value;
+}
+
+function analyzeLook(look, mode, season, palette, note) {
+  const randomPalette = palette === "Random";
+  const pieces = Object.values(look).filter(Boolean);
+  const worn = pieces.filter((p) => !p.off);
+  const colors = worn.map((p) => p.color);
+  const uniqueColors = [...new Set(colors)];  
+  const accentColors = ["Berry", "Olive", "Red", "Green", "Purple", "Dark Purple", "Pink", "Rose", "Wine Red", "Medium Blue", "Light Blue"].filter((c) => colors.includes(c));
+  const badColorCombos = [
+["Red", "Green"],
+["Berry", "Olive"],
+["Pink", "Green"],
+["Purple", "Olive"],
+["Wine Red", "Green"]
+];
+
+const hasComplementaryCombo = badColorCombos.some(
+([a, b]) => colors.includes(a) && colors.includes(b)
+);
+  const deepColors = ["Navy", "Navy Pinstripe", "Black", "Dark Grey", "Very Dark Blue", "Grey", "White", "Berry", "Purple", "Dark Purple"];
+  const neutrals = ["Navy", "Navy Pinstripe", "Black", "Dark Grey", "Grey", "Light Grey", "White", "Eggshell", "Beige"];
+  const formalAvg = worn.reduce((s, p) => s + (p.formal || 0), 0) / Math.max(1, worn.length);
+  const hasSuit = !look.blazer.off && sameSuit(look.blazer, look.pants);
+  const pinstripeSet = hasSuit && look.blazer.pinstripe && look.pants.pinstripe;
+  const dressShoes = look.shoes.type === "dress";
+  const blazerOn = !look.blazer.off;
+  const coatOn = !look.coat.off;
+  const casualCount = worn.filter((p) => p.casual).length;
+  const beltMatch = beltScore(look.shoes, look.belt);
+  const seasonFit = season === "Off" ? 8 : worn.reduce((s, p) => s + (p.seasons.includes("all") || p.seasons.includes(season.toLowerCase()) ? 10 : 4), 0) / Math.max(1, worn.length);
+
+  let score = 58;
+  score += Math.min(14, formalAvg * 1.15);
+  score += worn.filter((p) => deepColors.includes(p.color)).length * 2.1;
+  score += worn.filter((p) => neutrals.includes(p.color)).length * 1.2;
+  score += beltMatch;
+  score += seasonFit * 1.1;
+  if (hasSuit) score += 10;
+  if (pinstripeSet) score += 6;
+  if (dressShoes) score += 7;
+  if (blazerOn) score += 5;
+  if (mode === "Boss Look") score += blazerOn && dressShoes ? 8 : -8;
+  if (mode === "Elegant") score += dressShoes && accentColors.length <= 1 ? 6 : 0;
+  if (mode === "Office Daily") score += formalAvg >= 7 && casualCount <= 1 ? 5 : -4;
+  if (palette === "Quiet Luxury") score += colors.some((c) => ["Eggshell", "Beige", "Light Grey", "Grey", "Navy"].includes(c)) && accentColors.length <= 1 ? 5 : -2;
+  if (palette === "Old Money") score += colors.some((c) => ["Navy", "Eggshell", "Beige", "Olive", "Grey"].includes(c)) ? 4 : 0;
+  if (palette === "Clean Contrast") score += colors.includes("White") && colors.some((c) => ["Black", "Navy", "Dark Grey"].includes(c)) ? 5 : 0;
+
+  if (accentColors.length > 2) score -= 14;
+  if (uniqueColors.length === 1) score +=12;
+  if (uniqueColors.length === 2) score +=8;
+  if (uniqueColors.length > 2) score -=10;
+  if (uniqueColors.length > 3) score -=20;
+  if (hasComplementaryCombo) score -= 20;  
+  if (colors.includes("Berry") && colors.includes("Olive") && (colors.includes("Red") || colors.includes("Pink"))) score -= 18;
+  if (season === "Summer" && coatOn) score -= 15;
+  if ((mode === "Boss Look" || mode === "Elegant") && casualCount > 1) score -= 12;
+  if (/meeting|vortrag|termin|chef|wichtig/i.test(note)) score += blazerOn && dressShoes ? 5 : -4;
+  if (/autofahrt|fahrt|lang/i.test(note)) score += look.shoes.type === "sneaker" || !coatOn ? 2 : 0;
+  if (/heiß|heiss|warm|sommer/i.test(note)) score += look.top.category === "polo" && !coatOn ? 5 : -3;
+
+  score = Math.max(35, Math.min(100, Math.round(score)));
+ let label =
+score >= 92 ? "Signature Look" :
+score >= 84 ? "Very Harmonious" :
+score >= 76 ? "Business Strong" :
+score >= 66 ? "Solid" :
+"Experimental";
+if (hasComplementaryCombo) {
+label = "Risky";
+}
+
+ 
+  const stats = {
+    business: clamp10(Math.round(formalAvg + (blazerOn ? 1 : 0) + (dressShoes ? 1 : 0) - casualCount)),
+    boss: clamp10(Math.round((formalAvg + (hasSuit ? 2 : 0) + (dressShoes ? 1 : 0) + (colors.includes("Black") ? 1 : 0)) / 1.25)),
+    deepWinter: clamp10(Math.round((worn.filter((p) => deepColors.includes(p.color)).length / Math.max(1, worn.length)) * 10)),
+    quietLuxury: clamp10(Math.round((worn.filter((p) => neutrals.includes(p.color)).length / Math.max(1, worn.length)) * 8 + (accentColors.length <= 1 ? 2 : 0)))
+  };
+  const main = dominantColor(colors);
+  return {
+    score,
+    label,
+    stats,
+    colorEffect: colorPsychology(main, colors),
+    perception: score >= 92 ? "Wirkt extrem souverän, fokussiert und hochwertig: ein echter Paulina-Signature-Look mit klarer Führungsenergie." : score >= 84 ? "Wirkt professionell, harmonisch und bewusst gestylt, ohne überladen zu sein." : score >= 76 ? "Wirkt business-tauglich und präsent, könnte aber noch ruhiger oder präziser werden." : "Wirkt tragbar, aber noch nicht maximal Paulina: einzelne Elemente konkurrieren miteinander.",
+    makeup: makeupAdvice(colors, score),
+    optimization: buildOptimization(look, accentColors, beltMatch, season, mode, score),
+    toHundred: buildHundredTip(look, hasSuit, dressShoes, beltMatch, accentColors, season, mode)
+  };
+}
+
+function sameSuit(blazer, pants) {
+  if (blazer.off) return false;
+  if (blazer.name === pants.name) return true;
+  return blazer.color === pants.color && ["Black", "Navy", "Dark Grey", "Berry", "Olive", "Medium Blue"].includes(blazer.color);
+}
+
+function beltScore(shoes, belt) {
+  if (belt.off) return 0;
+  if (shoes.color === "Black" && belt.color === "Black") return 8;
+  if (shoes.color === "Beige" && ["Beige", "Brown"].includes(belt.color)) return 6;
+  if (shoes.color === "White" && ["White", "Beige"].includes(belt.color)) return 6;
+  if (shoes.color === "Navy" && ["Black", "Beige"].includes(belt.color)) return 3;
+  if (belt.color === "Brown" && !["Beige", "Olive", "Eggshell"].includes(shoes.color)) return -5;
+  return -2;
+}
+
+function dominantColor(colors) {
+  const priority = ["Navy Pinstripe", "Navy", "Black", "Dark Grey", "Grey", "White", "Berry", "Olive", "Beige", "Red", "Green", "Purple"];
+  return priority.find((c) => colors.includes(c)) || colors[0] || "Navy";
+}
+
+function colorPsychology(main, colors) {
+  const map = {
+    Navy: "Navy vermittelt Kompetenz, Vertrauen und Ruhe. In Kombination mit klaren Kontrasten wirkt es sehr business-sicher.",
+    "Navy Pinstripe": "Navy Pinstripe wirkt kompetent, klassisch und sehr führungsstark: ruhig, aber mit subtiler Autorität.",
+    Black: "Black steht für Autorität, Fokus und Stärke. Der Look bekommt dadurch eine klare Boss-Energy.",
+    "Dark Grey": "Dark Grey wirkt seriös, neutral und strukturiert. Es lässt Details hochwertig und kontrolliert wirken.",
+    Grey: "Grey wirkt seriös, analytisch und modern. Perfekt, wenn der Look ruhig und professionell bleiben soll.",
+    White: "White wirkt clean, klar und professionell. Es erhöht Frische und Kontrast.",
+    Berry: "Berry wirkt individuell, edel und präsent. Ideal als kontrollierter Akzent.",
+    Olive: "Olive wirkt ruhig, strategisch und grounded. Es bringt Tiefe, sollte aber klar kombiniert werden.",
+    Beige: "Beige und Eggshell wirken soft, old money und quiet luxury. Besonders stark mit Navy, Black oder Grey.",
+    Red: "Red wirkt präsent, mutig und auffällig. Am besten als bewusst gesetzter Fokuspunkt.",
+    Green: "Green wirkt ruhig, wertig und natürlich. In Business-Looks besonders gut mit dunklen Neutralfarben.",
+    Purple: "Purple wirkt kreativ, tief und luxuriös. Mit dunklen Basics sehr Paulina-kompatibel."
+  };
+  const extra = colors.includes("White") && colors.some((c) => ["Black", "Navy", "Dark Grey"].includes(c)) ? " Der Hell-Dunkel-Kontrast unterstützt Deep-Winter-Klarheit." : "";
+  return (map[main] || map.Navy) + extra;
+}
+
+function makeupAdvice(colors, score) {
+  const hasBerry = colors.includes("Berry") || colors.includes("Purple") || colors.includes("Red");
+  const hasSoft = colors.includes("Beige") || colors.includes("Eggshell") || colors.includes("Rose");
+  const lips = hasBerry ? "Lippen: kühles Berry, Rosenholz oder tiefes Mauve." : "Lippen: klares Nude-Rose, Soft Berry oder kühles Rot als Statement.";
+  const blush = hasSoft ? "Blush: soft rose, sehr fein verblendet." : "Blush: kühles Rosé, sparsam und clean.";
+  const eyes = score >= 84 ? "Augen: definierte Wimpern, dezenter Taupe/Grey-Liner, keine überladenen Farben." : "Augen: mit klarer Mascara und leichtem Lidstrich mehr Struktur geben.";
+  return `${lips} ${blush} ${eyes}`;
+}
+
+function buildOptimization(look, accents, beltMatch, season, mode, score) {
+  if (score >= 92) return "Nicht viel ändern: Silhouette, Kontrast und Business-Signal sind bereits sehr nah an Paulinas Ideal.";
+  if (beltMatch < 0) return "Gürtel und Schuhe harmonisieren noch nicht optimal. Wähle bei schwarzen Schuhen bevorzugt den schwarzen Gürtel.";
+  if (accents.length > 2) return "Reduziere Akzentfarben. Ein starker Akzent reicht, der Rest sollte Navy, Black, Grey, White oder Eggshell bleiben.";
+  if (season === "Summer" && !look.coat.off) return "Für Summer den Mantel ausschalten. Das macht den Look leichter und glaubwürdiger.";
+  if (mode === "Boss Look" && (look.blazer.off || look.shoes.type !== "dress")) return "Für Boss Look: Blazer aktivieren und schwarze Dress Shoes wählen.";
+  return "Mehr Kontrast und eine ruhigere Farbachse würden den Look hochwertiger machen, z. B. Navy/Black/Grey mit White oder Eggshell.";
+}
+
+function buildHundredTip(look, hasSuit, dressShoes, beltMatch, accents, season, mode) {
+  if (!hasSuit && mode === "Boss Look") return "Näher an 100 kommst du mit passendem Blazer-Hosen-Set, ideal Navy Pinstripe, Black oder Navy.";
+  if (!dressShoes) return "Tausche Sneaker gegen Black Leather Loafer, Black Glossy Loafer oder Black Oxford für mehr Formalität.";
+  if (beltMatch < 6) return "Schließe die Schuh-Gürtel-Achse: schwarze Schuhe plus schwarzer Gürtel ist die sauberste Business-Lösung.";
+  if (accents.length > 1) return "Nutze maximal eine Akzentfarbe und halte die restlichen Teile neutral und dunkel.";
+  if (season === "Winter" && look.coat.off) return "Im Winter kann ein schwarzer oder navy Mantel den Look noch kompletter und luxuriöser machen.";
+  return "Für 100: klare dunkle Basis, hochwertige Kontraste, ruhige Accessoire-Achse und maximal ein bewusster Akzent.";
+}
+
+function clamp10(n) {
+  return Math.max(0, Math.min(10, n));
+}
